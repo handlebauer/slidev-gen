@@ -242,7 +242,10 @@ Generate a Slidev markdown presentation that:
     > - Implemented Zod schemas for type-safe configuration and project context validation
     > - Created class-based architecture with clear separation of concerns (analyzers, generators, config)
     > - Set up AI SDK integration with proper error handling and type definitions
-- [ ] Basic CLI implementation
+- [x] Basic CLI implementation
+    > - Created class-based CLI with proper command structure and error handling
+    > - Implemented configuration merging (CLI options override config file)
+    > - Added secure API key handling via CLI or environment variables
 - [ ] Project analysis core
 - [ ] Configuration management
 - [ ] Simple slide generation

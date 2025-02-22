@@ -1,5 +1,5 @@
 import { generateText } from 'ai'
-import { openai } from '@ai-sdk/openai'
+import { createOpenAI } from '@ai-sdk/openai'
 import type { ProjectContext } from '../context/types'
 
 interface SlideContent {
@@ -24,7 +24,17 @@ interface SlideOutput {
 }
 
 export class SlidesGenerator {
-    constructor(private readonly outputDir: string) {}
+    private readonly openai
+
+    constructor(
+        private readonly outputDir: string,
+        apiKey: string,
+    ) {
+        this.openai = createOpenAI({
+            apiKey,
+            compatibility: 'strict',
+        })
+    }
 
     async generate(context: ProjectContext): Promise<SlideOutput> {
         const content = await this.generateContent(context)
@@ -35,7 +45,7 @@ export class SlidesGenerator {
         context: ProjectContext,
     ): Promise<SlideContent> {
         const { text } = await generateText({
-            model: openai('gpt-4o-mini'),
+            model: this.openai('gpt-4'),
             system: 'You are a technical presentation expert. Generate clear, concise slides that effectively communicate technical concepts.',
             prompt: `Generate a presentation based on the following project context: ${JSON.stringify(context)}`,
             maxSteps: 3,
