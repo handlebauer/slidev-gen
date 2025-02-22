@@ -1,7 +1,10 @@
 import type { ProjectConfig } from '../config/types'
 import { ProjectConfigSchema } from '../config/types'
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { SlidevGenError } from '../errors/SlidevGenError'
+import { logger } from './logger'
+import { dirname } from 'path'
+import { mkdir } from 'fs/promises'
+import { ZodError } from 'zod'
 
 /**
  * Manages project-specific configuration including presentation and deployment settings.
@@ -15,15 +18,86 @@ export class ConfigManager {
     }
 
     async loadConfig(): Promise<ProjectConfig> {
-        // TODO: Load from .slidev-gen.json in project root
-        // Return defaults if not found
-        // Throw InvalidConfiguration if file exists but is invalid
-        return ProjectConfigSchema.parse({})
+        try {
+            // Try to read and parse config file using Bun's built-in JSON parser
+            const file = Bun.file(this.configPath)
+            const exists = await file.exists()
+
+            if (!exists) {
+                logger.info('No configuration file found, using defaults')
+                return ProjectConfigSchema.parse({})
+            }
+
+            const parsedConfig = await file.json()
+
+            try {
+                // Validate and parse with zod schema
+                return ProjectConfigSchema.parse(parsedConfig)
+            } catch (error) {
+                if (error instanceof ZodError) {
+                    throw new SlidevGenError(
+                        'InvalidConfiguration',
+                        `Invalid configuration format: ${error.errors.map(e => e.message).join(', ')}`,
+                        error,
+                    )
+                }
+                throw error
+            }
+        } catch (error: unknown) {
+            if (error instanceof SyntaxError) {
+                throw new SlidevGenError(
+                    'InvalidConfiguration',
+                    'Configuration file contains invalid JSON',
+                    error,
+                )
+            }
+
+            if (error instanceof SlidevGenError) {
+                throw error
+            }
+
+            throw new SlidevGenError(
+                'InvalidConfiguration',
+                'Failed to load configuration',
+                error instanceof Error ? error : new Error(String(error)),
+            )
+        }
     }
 
     async saveConfig(config: ProjectConfig): Promise<void> {
-        // TODO: Save to .slidev-gen.json in project root
-        void config
-        throw new Error('Not implemented')
+        try {
+            // Validate config before saving
+            try {
+                const validatedConfig = ProjectConfigSchema.parse(config)
+
+                // Ensure directory exists
+                await mkdir(dirname(this.configPath), { recursive: true })
+
+                // Pretty print JSON for better readability
+                const configString = JSON.stringify(validatedConfig, null, 2)
+
+                await Bun.write(this.configPath, configString)
+                logger.info('Configuration saved successfully')
+            } catch (error) {
+                if (error instanceof ZodError) {
+                    throw new SlidevGenError(
+                        'InvalidConfiguration',
+                        `Invalid configuration format: ${error.errors.map(e => e.message).join(', ')}`,
+                        error,
+                    )
+                }
+                throw error
+            }
+        } catch (error: unknown) {
+            if (error instanceof SlidevGenError) {
+                throw error
+            }
+
+            throw new SlidevGenError(
+                'InvalidConfiguration',
+                'Failed to save configuration',
+                error instanceof Error ? error : new Error(String(error)),
+            )
+        }
     }
 }
