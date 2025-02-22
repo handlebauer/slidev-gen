@@ -35,6 +35,7 @@
     "dependencies": {
         "@ai-sdk/openai": "^1.1.13",
         "@slidev/cli": "^51.3.0",
+        "@slidev/theme-default": "^0.25.0",
         "ai": "^4.1.45",
         "commander": "^13.1.0",
         "dedent": "^1.5.3",

@@ -38,7 +38,7 @@ class CLI {
         this.program
             .command('generate')
             .description('Generate a new presentation')
-            .option('-o, --slides-path <dir>', 'output directory', './slides')
+            .option('-o, --slides-path <dir>', 'output directory', './.slides')
             .option('-m, --model <model>', 'OpenAI model to use', 'gpt-4')
             .option('-t, --theme <theme>', 'Slidev theme to use', 'default')
             .option('-k, --api-key <key>', 'OpenAI API key')
@@ -75,8 +75,8 @@ class CLI {
                     console.log(
                         `Starting preview server at ${config.slidesPath}...`,
                     )
-                    // TODO: Implement preview using Slidev CLI
-                    throw new Error('Not implemented')
+                    const generator = new SlidesGenerator(config.slidesPath)
+                    await generator.preview()
                 } catch (error) {
                     this.handleError(error)
                 }

@@ -62,7 +62,7 @@ describe('ConfigManager', () => {
 
                 // Test against the schema defaults
                 expect(config).toEqual({
-                    slidesPath: './slides',
+                    slidesPath: './.slides',
                     model: 'gpt-4',
                     theme: 'default',
                     deploymentType: 'github',
@@ -134,7 +134,7 @@ describe('ConfigManager', () => {
                 const deepConfigPath = join(TEST_CONFIG_ROOT, 'deep', 'nested')
                 const configManager = new ConfigManager(deepConfigPath)
                 const testConfig: ProjectConfig = {
-                    slidesPath: './slides',
+                    slidesPath: './.slides',
                     model: 'gpt-4',
                     theme: 'default',
                     deploymentType: 'github',

@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 export const ProjectConfigSchema = z.object({
     // Presentation settings
-    slidesPath: z.string().default('./slides'),
+    slidesPath: z.string().default('./.slides'),
     model: z.string().default('gpt-4'),
     theme: z.string().default('default'),
 

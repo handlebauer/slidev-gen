@@ -19,8 +19,7 @@ export const templates: Record<string, SlideTemplate> = {
         content: (data: SlideTemplateData) => dedent`
             # Overview
 
-            ${data.overview}
-        `,
+            ${data.overview}`,
     },
 
     architecture: {
@@ -116,14 +115,19 @@ export function createSlide(
             ? template.content(data)
             : template.content
 
-    return content
-        ? dedent`
-            ---
-            layout: ${template.layout}
-            ---
-            ${content}
-        `
-        : ''
+    if (content) {
+        let finalContent = '---'
+        finalContent += '\n'
+        finalContent += `layout: ${template.layout}`
+        finalContent += '\n'
+        finalContent += '---'
+        finalContent += '\n\n'
+        finalContent += content
+
+        return finalContent
+    }
+
+    return ''
 }
 
 export const defaultConfig = {

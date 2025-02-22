@@ -150,7 +150,7 @@ export class SlidesGenerator {
      * Preview the slides in development mode
      */
     async preview(): Promise<void> {
-        await $`slidev ${join(this.outputDir, 'slides.md')}`
+        await $`./node_modules/.bin/slidev ${join(this.outputDir, 'slides.md')}`
     }
 
     /**
@@ -158,7 +158,7 @@ export class SlidesGenerator {
      * @param outDir Optional output directory for the built files (defaults to 'dist')
      */
     async build(outDir = 'dist'): Promise<void> {
-        await $`slidev build ${join(this.outputDir, 'slides.md')} --out ${outDir}`
+        await $`./node_modules/.bin/slidev build ${join(this.outputDir, 'slides.md')} --out ${outDir}`
     }
 
     /**
@@ -166,6 +166,6 @@ export class SlidesGenerator {
      * @param outputPath Path for the PDF file
      */
     async exportPDF(outputPath: string): Promise<void> {
-        await $`slidev export ${join(this.outputDir, 'slides.md')} --output ${outputPath}`
+        await $`./node_modules/.bin/slidev export ${join(this.outputDir, 'slides.md')} --output ${outputPath}`
     }
 }
