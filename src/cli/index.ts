@@ -1,6 +1,6 @@
 import { Command } from 'commander'
 import { ProjectAnalyzer } from '../context/analyzer'
-import { SlidesGenerator } from '../generators/slides-generator'
+import { SlidesGenerator } from '../generators/slides/slides-generator'
 import { ConfigManager } from '../utils/config-manager'
 import { SlidevGenError } from '../errors/SlidevGenError'
 import type { ProjectConfig } from '../config/types'
