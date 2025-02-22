@@ -1,13 +1,11 @@
-import { configure, getLogger, getConsoleSink } from '@logtape/logtape'
-import { config } from '~/config'
+import pino from 'pino'
 
-await configure({
-    sinks: { console: getConsoleSink() },
-    filters: {},
-    loggers: [
-        { category: ['logtape', 'meta'], level: 'warning', sinks: ['console'] },
-        { category: [config.PACKAGE_NAME], level: 'debug', sinks: ['console'] },
-    ],
+export const logger = pino({
+    transport: {
+        target: 'pino-pretty',
+        options: {
+            colorize: true,
+        },
+    },
+    level: 'debug',
 })
-
-export const logger = getLogger([config.PACKAGE_NAME])
