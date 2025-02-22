@@ -38,6 +38,19 @@ export class SlidesGenerator {
         return key
     }
 
+    private async ensureSlidevInstalled(): Promise<void> {
+        try {
+            // Try to dynamically import @slidev/cli to check if it's available
+            await import('@slidev/cli')
+        } catch (error) {
+            console.error(error)
+            console.log('Installing required Slidev dependencies...')
+            // Install both @slidev/cli and theme as temporary dependencies
+            await $`bun add -d @slidev/cli @slidev/theme-default`
+            console.log('Slidev dependencies installed successfully')
+        }
+    }
+
     async generate(context: ProjectContext): Promise<SlideOutput> {
         const content = await this.generateContent(context)
         const output = await this.generateOutput(content)
@@ -150,7 +163,8 @@ export class SlidesGenerator {
      * Preview the slides in development mode
      */
     async preview(): Promise<void> {
-        await $`./node_modules/.bin/slidev ${join(this.outputDir, 'slides.md')}`
+        await this.ensureSlidevInstalled()
+        await $`npx slidev ${join(this.outputDir, 'slides.md')}`
     }
 
     /**
@@ -158,7 +172,8 @@ export class SlidesGenerator {
      * @param outDir Optional output directory for the built files (defaults to 'dist')
      */
     async build(outDir = 'dist'): Promise<void> {
-        await $`./node_modules/.bin/slidev build ${join(this.outputDir, 'slides.md')} --out ${outDir}`
+        await this.ensureSlidevInstalled()
+        await $`npx slidev build ${join(this.outputDir, 'slides.md')} --out ${outDir}`
     }
 
     /**
@@ -166,6 +181,7 @@ export class SlidesGenerator {
      * @param outputPath Path for the PDF file
      */
     async exportPDF(outputPath: string): Promise<void> {
-        await $`./node_modules/.bin/slidev export ${join(this.outputDir, 'slides.md')} --output ${outputPath}`
+        await this.ensureSlidevInstalled()
+        await $`npx slidev export ${join(this.outputDir, 'slides.md')} --output ${outputPath}`
     }
 }

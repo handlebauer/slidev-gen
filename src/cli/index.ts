@@ -72,9 +72,6 @@ class CLI {
             .action(async () => {
                 try {
                     const config = await this.loadConfig({})
-                    console.log(
-                        `Starting preview server at ${config.slidesPath}...`,
-                    )
                     const generator = new SlidesGenerator(config.slidesPath)
                     await generator.preview()
                 } catch (error) {
