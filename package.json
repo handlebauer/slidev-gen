@@ -4,8 +4,11 @@
     "version": "0.1.1",
     "module": "src/index.ts",
     "bin": {
-        "slidev-gen": "./bin/slidev-gen.ts"
+        "slidev-gen": "./dist/bin/slidev-gen.js"
     },
+    "files": [
+        "dist"
+    ],
     "scripts": {
         "env": "bun --print process.env",
         "prepare": "husky",

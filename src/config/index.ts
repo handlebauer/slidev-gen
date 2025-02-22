@@ -14,7 +14,8 @@ const appConfigSchema = z.object({
         )
         .default(version),
     NODE_ENV: envSchema.default('development'),
-    BUILD_TARGET: targetSchema.default('bun'),
+    BUILD_TARGET: targetSchema.default('node'),
+    OPENAI_API_KEY: z.string().optional(),
 })
 
 type AppConfig = z.infer<typeof appConfigSchema>
