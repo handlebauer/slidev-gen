@@ -14,9 +14,9 @@
 
 - Framework: Slidev v0.51.2+
 - Runtime: Node.js
-- Package Manager: npm/bun
+- Package Manager: bun
 - Primary Language: TypeScript
-- LLM Integration: OpenAI API
+- LLM Integration: Vercel AI SDK with OpenAI
 
 ### Key Components
 
@@ -73,22 +73,40 @@ interface CLICommands {
 ### R3: Configuration
 
 ```typescript
-interface UserConfig {
-    apiKey: string
-    defaultModel: string
-    defaultTheme: string
+interface ProjectConfig {
+    // Presentation settings
+    slidesPath: string    // default: "./slides"
+    model: string        // default: "gpt-4"
+    theme: string       // default: "default"
+
+    // Deployment settings (optional)
+    deploymentType?: 'github' | 'netlify' | 'vercel'
+    customDomain?: string
 }
 
-interface ProjectConfig {
-    slidesPath: string
-    deploymentType: 'github' | 'netlify' | 'vercel'
-    customDomain?: string
+// API Key handling
+interface APIKeyProvider {
+    getAPIKey(): Promise<string> {
+        // 1. Check process.env.OPENAI_API_KEY
+        const envKey = process.env.OPENAI_API_KEY
+        if (envKey) return envKey
+
+        // 2. If not found, prompt user
+        // This would be implemented in the CLI layer
+        throw new SlidevGenError(
+            'APIKeyMissing',
+            'OpenAI API key not found in environment. Please provide it via --api-key or set OPENAI_API_KEY environment variable.'
+        )
+    }
 }
 ```
 
 ### R4: Slide Generation
 
 ```typescript
+import { generateText } from 'ai'
+import { openai } from '@ai-sdk/openai'
+
 interface SlideContent {
     title: string
     sections: {
@@ -108,6 +126,21 @@ interface SlideOutput {
     markdown: string // slides.md content
     assets: string[] // paths to generated assets
     config: object // slidev config
+}
+
+// Slide generation implementation
+async function generateSlideContent(
+    context: ProjectContext,
+): Promise<SlideContent> {
+    const { text } = await generateText({
+        model: openai('gpt-4'),
+        system: 'You are a technical presentation expert. Generate clear, concise slides that effectively communicate technical concepts.',
+        prompt: `Generate a presentation based on the following project context: ${JSON.stringify(context)}`,
+        maxSteps: 3,
+        experimental_continueSteps: true,
+    })
+
+    return JSON.parse(text) as SlideContent
 }
 ```
 
@@ -130,16 +163,29 @@ interface DeploymentConfig {
 ### Context Building Prompt Template
 
 ```typescript
-const contextPrompt = `
+import { generateText } from 'ai'
+import { openai } from '@ai-sdk/openai'
+
+const generateContextPrompt = async (context: {
+    repoUrl: string
+    technologies: string[]
+    documentationSummary: string
+    gitHistory: string
+    featuresList: string[]
+}) => {
+    const { text } = await generateText({
+        model: openai('gpt-4'),
+        system: 'You are a technical documentation expert. Analyze project context and generate presentation outlines.',
+        prompt: `
 Project Analysis for Presentation Generation:
-1. Repository: {repoUrl}
-2. Main Technologies: {technologies}
+1. Repository: ${context.repoUrl}
+2. Main Technologies: ${context.technologies.join(', ')}
 3. Key Documentation:
-   {documentationSummary}
+   ${context.documentationSummary}
 4. Recent Changes:
-   {gitHistory}
+   ${context.gitHistory}
 5. Core Features:
-   {featuresList}
+   ${context.featuresList.join('\n   ')}
 
 Generate a presentation that:
 - Captures the technical essence
@@ -147,15 +193,32 @@ Generate a presentation that:
 - Showcases key features
 - Includes relevant diagrams
 - Follows best practices for technical presentations
-`
+        `,
+    })
+
+    return text
+}
 ```
 
 ### Slide Generation Prompt Template
 
 ```typescript
-const slideGenPrompt = `
-Based on the following project context:
-{projectContext}
+import { generateText } from 'ai'
+import { openai } from '@ai-sdk/openai'
+
+const generateSlides = async (projectContext: any) => {
+    const { text } = await generateText({
+        model: openai('gpt-4'),
+        system: `
+You are a technical presentation expert. Follow these guidelines:
+- Use code snippets for technical examples
+- Include Mermaid diagrams for architecture
+- Keep each slide focused and concise
+- Use Slidev's built-in layouts appropriately
+- Maintain technical accuracy
+        `,
+        prompt: `Based on the following project context:
+${JSON.stringify(projectContext, null, 2)}
 
 Generate a Slidev markdown presentation that:
 1. Uses the following structure:
@@ -164,21 +227,21 @@ Generate a Slidev markdown presentation that:
    - Key Features
    - Technical Deep Dive
    - Future Roadmap
+        `,
+    })
 
-2. Follows these guidelines:
-   - Use code snippets for technical examples
-   - Include Mermaid diagrams for architecture
-   - Keep each slide focused and concise
-   - Use Slidev's built-in layouts appropriately
-   - Maintain technical accuracy
-`
+    return text
+}
 ```
 
 ## Development Phases
 
 ### Phase 1: Foundation (Week 1-2)
 
-- [ ] Project scaffolding
+- [x] Project scaffolding
+    > - Implemented Zod schemas for type-safe configuration and project context validation
+    > - Created class-based architecture with clear separation of concerns (analyzers, generators, config)
+    > - Set up AI SDK integration with proper error handling and type definitions
 - [ ] Basic CLI implementation
 - [ ] Project analysis core
 - [ ] Configuration management
@@ -226,6 +289,8 @@ interface QualityMetrics {
 ### Expected Error Cases
 
 ```typescript
+import { SlidevGenError } from './errors/SlidevGenError'
+
 type ErrorTypes =
     | 'InvalidProjectStructure'
     | 'APIKeyMissing'
@@ -237,6 +302,18 @@ interface ErrorHandler {
     type: ErrorTypes
     message: string
     recovery: () => Promise<void>
+}
+
+// Example error handling with AI SDK
+const handleGenerationError = (error: any) => {
+    if (error.name === 'AIError') {
+        throw new SlidevGenError(
+            'LLMGenerationFailed',
+            'Failed to generate presentation content',
+            error,
+        )
+    }
+    throw error
 }
 ```
 

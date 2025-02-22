@@ -2,8 +2,12 @@
     "name": "slidev-gen",
     "version": "0.1.1",
     "module": "src/index.ts",
+    "bin": {
+        "slidev-gen": "./bin/slidev-gen.ts"
+    },
     "devDependencies": {
         "@types/bun": "latest",
+        "@types/commander": "^2.12.2",
         "@typescript-eslint/eslint-plugin": "^8.2.0",
         "@typescript-eslint/parser": "^8.2.0",
         "eslint": "^9.9.1",
@@ -28,6 +32,9 @@
     },
     "type": "module",
     "dependencies": {
+        "@ai-sdk/openai": "^1.1.13",
+        "ai": "^4.1.45",
+        "commander": "^13.1.0",
         "pino": "^9.6.0",
         "pino-pretty": "^13.0.0"
     }

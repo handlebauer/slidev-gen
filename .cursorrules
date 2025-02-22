@@ -1,2 +1,2 @@
 1. Use `bun` instead of `npm` or `pnpm` or `yarn`
-
+2. Do NOT directly modify package.json to modify dependencies
