@@ -126,8 +126,6 @@ export class SlidesGenerator {
             schema: slideContentSchema,
         })
 
-        console.log(object)
-
         return object as SlideContent
     }
 
@@ -159,19 +157,41 @@ export class SlidesGenerator {
         // Generate features slide
         slides.push(createSlide(templates.features, templateData))
 
-        // Generate technical slides
-        slides.push(createSlide(templates.technicalHeader, templateData))
+        // Generate technical slides with smart grouping
+        if (content.sections.technical.length > 0) {
+            // Add technical section header
+            slides.push(createSlide(templates.technicalHeader, templateData))
 
-        content.sections.technical.forEach((detail, index) => {
-            const technicalData: SlideTemplateData = {
-                technical: {
-                    index,
-                    detail,
-                    diagram: content.diagrams.flowcharts?.[index],
-                },
+            // Group technical details (max 3 per slide)
+            for (let i = 0; i < content.sections.technical.length; i += 3) {
+                const groupDetails = content.sections.technical.slice(i, i + 3)
+                const groupDiagrams =
+                    content.diagrams.flowcharts?.slice(i, i + 3) || []
+
+                // Generate a descriptive title for this group
+                const groupTitle =
+                    i === 0
+                        ? 'Core Technical Features'
+                        : i <= 3
+                          ? 'Implementation Details'
+                          : 'Advanced Technical Concepts'
+
+                const technicalData: SlideTemplateData = {
+                    technical: {
+                        title: groupTitle,
+                        details: groupDetails,
+                        diagrams: groupDiagrams,
+                    },
+                }
+
+                // Choose appropriate layout based on content
+                const hasDigrams = groupDiagrams.length > 0
+                const template = hasDigrams
+                    ? templates.technicalWithDiagram
+                    : templates.technicalGroup
+                slides.push(createSlide(template, technicalData))
             }
-            slides.push(createSlide(templates.technicalDetail, technicalData))
-        })
+        }
 
         // Generate roadmap slide
         slides.push(createSlide(templates.roadmap, templateData))

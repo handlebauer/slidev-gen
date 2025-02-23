@@ -26,7 +26,7 @@ export const templates: Record<string, SlideTemplate> = {
     },
 
     architecture: {
-        layout: 'two-cols',
+        layout: 'cover',
         content: (data: SlideTemplateData) => {
             const arch = data.architecture
             if (!arch) return ''
@@ -36,8 +36,8 @@ export const templates: Record<string, SlideTemplate> = {
 
                 ${arch.description}
 
-                ::right::
-
+                <br>
+                
                 ${
                     arch.diagram
                         ? dedent`
@@ -66,29 +66,40 @@ export const templates: Record<string, SlideTemplate> = {
 
     technicalHeader: {
         layout: 'section',
-        content: dedent`
+        content: () => dedent`
             # Technical Deep Dive
         `,
     },
 
-    technicalDetail: {
-        layout: 'fact',
+    technicalGroup: {
+        layout: 'center',
         content: (data: SlideTemplateData) => {
-            const tech = data.technical
-            if (!tech) return ''
-
+            if (!data.technical) return ''
+            const { title, details } = data.technical
             return dedent`
-                # Technical Detail ${tech.index + 1}
+                # ${title}
 
-                ${tech.detail}
+                ${details.map(detail => `- ${detail}`).join('\n')}
+            `
+        },
+    },
 
+    technicalWithDiagram: {
+        layout: 'two-cols',
+        content: (data: SlideTemplateData) => {
+            if (!data.technical) return ''
+            const { title, details, diagrams } = data.technical
+            return dedent`
+                # ${title}
+
+                ${details.map(detail => `- ${detail}`).join('\n')}
+
+                ::right::
                 ${
-                    tech.diagram
-                        ? dedent`
-                    \`\`\`mermaid
-                    ${tech.diagram}
-                    \`\`\`
-                `
+                    diagrams?.[0]
+                        ? `\`\`\`mermaid
+                ${diagrams[0]}
+                \`\`\``
                         : ''
                 }
             `

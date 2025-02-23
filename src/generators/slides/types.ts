@@ -1,7 +1,11 @@
 import { z } from 'zod'
 
 export const slideContentSchema = z.object({
-    title: z.string().describe('The title of the presentation'),
+    title: z
+        .string()
+        .describe(
+            'The title of the presentation (no subtitle, just the name of the presentation)',
+        ),
     headline: z
         .string()
         .describe(
@@ -68,9 +72,9 @@ export interface SlideTemplateData {
     }
     features?: string[]
     technical?: {
-        index: number
-        detail: string
-        diagram?: string
+        title: string
+        details: string[]
+        diagrams?: string[]
     }
     roadmap?: string[]
 }
