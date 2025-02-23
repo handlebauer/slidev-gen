@@ -52,12 +52,16 @@ export class SlidesGenerator {
             console.error(error)
             console.log('Installing required Slidev dependencies...')
             // Install both @slidev/cli and theme as temporary dependencies
-            await execa('npm', [
-                'install',
-                '--save-dev',
-                '@slidev/cli',
-                '@slidev/theme-default',
-            ])
+            await execa(
+                'npm',
+                [
+                    'install',
+                    '--save-dev',
+                    '@slidev/cli',
+                    '@slidev/theme-default',
+                ],
+                { stdio: 'inherit' },
+            )
             console.log('Slidev dependencies installed successfully')
         }
     }
@@ -176,7 +180,9 @@ export class SlidesGenerator {
      */
     async preview(): Promise<void> {
         await this.ensureSlidevInstalled()
-        await execa('npx', ['slidev', join(this.outputDir, 'slides.md')])
+        await execa('npx', ['slidev', join(this.outputDir, 'slides.md')], {
+            stdio: 'inherit',
+        })
     }
 
     /**
@@ -185,13 +191,19 @@ export class SlidesGenerator {
      */
     async build(outDir = 'dist'): Promise<void> {
         await this.ensureSlidevInstalled()
-        await execa('npx', [
-            'slidev',
-            'build',
-            join(this.outputDir, 'slides.md'),
-            '--out',
-            outDir,
-        ])
+        await execa(
+            'npx',
+            [
+                'slidev',
+                'build',
+                join(this.outputDir, 'slides.md'),
+                '--out',
+                outDir,
+            ],
+            {
+                stdio: 'inherit',
+            },
+        )
     }
 
     /**
@@ -200,12 +212,18 @@ export class SlidesGenerator {
      */
     async exportPDF(outputPath: string): Promise<void> {
         await this.ensureSlidevInstalled()
-        await execa('npx', [
-            'slidev',
-            'export',
-            join(this.outputDir, 'slides.md'),
-            '--output',
-            outputPath,
-        ])
+        await execa(
+            'npx',
+            [
+                'slidev',
+                'export',
+                join(this.outputDir, 'slides.md'),
+                '--output',
+                outputPath,
+            ],
+            {
+                stdio: 'inherit',
+            },
+        )
     }
 }
