@@ -16,16 +16,22 @@ import type { ProjectContext } from '../../context/types'
 import type { SlideContent, SlideOutput, SlideTemplateData } from './types'
 
 export class SlidesGenerator {
-    private readonly openai
+    private openai: ReturnType<typeof createOpenAI> | undefined
 
     constructor(
         private readonly outputDir: string,
-        apiKey?: string,
-    ) {
-        this.openai = createOpenAI({
-            apiKey: this.resolveApiKey(apiKey),
-            compatibility: 'strict',
-        })
+        private readonly apiKey?: string,
+    ) {}
+
+    private initializeOpenAI(): ReturnType<typeof createOpenAI> {
+        if (!this.openai) {
+            const key = this.resolveApiKey(this.apiKey)
+            this.openai = createOpenAI({
+                apiKey: key,
+                compatibility: 'strict',
+            })
+        }
+        return this.openai
     }
 
     private resolveApiKey(providedKey?: string): string {
@@ -74,8 +80,9 @@ export class SlidesGenerator {
     private async generateContent(
         context: ProjectContext,
     ): Promise<SlideContent> {
+        const openai = this.initializeOpenAI()
         const { object } = await generateObject({
-            model: this.openai('gpt-4o-mini'),
+            model: openai('gpt-4o-mini'),
             system: 'You are a technical presentation expert. Generate clear, concise slides that effectively communicate technical concepts.',
             prompt: `Generate presentation data based on the following project context: ${JSON.stringify(context)}`,
             schema: slideContentSchema,
