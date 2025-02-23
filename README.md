@@ -26,10 +26,29 @@ bunx slidev-gen deploy
 
 ## Configuration
 
-**Optional** CLI options:
+SlidevGen is configured with sensible default.
+
+Optionally, you may create a `.slidev-gen.json` file in your project root:
+
+```json
+{
+    "slidesPath": "./.slides",
+    "model": "gpt-4",
+    "theme": "default",
+    "deploymentType": "github"
+}
+```
+
+Or use CLI options:
 
 ```bash
 bunx slidev-gen generate --slides-path ./custom-slides --model gpt-4-turbo
+```
+
+To see all options:
+
+```bash
+bunx slidev-gen
 ```
 
 ## Available Slide Templates
