@@ -4,6 +4,9 @@ await Bun.build({
     entrypoints: ['./bin/slidev-gen.ts'],
     outdir: './dist',
     target: 'node',
+    define: {
+        'process.env.NODE_ENV': 'production',
+    },
     external: [
         ...Object.keys(packageJson.peerDependencies),
         ...Object.keys(packageJson.devDependencies),
