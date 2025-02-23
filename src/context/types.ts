@@ -2,8 +2,16 @@ import { z } from 'zod'
 
 export const ProjectContextSchema = z.object({
     documentation: z.object({
-        readme: z.string(),
-        additionalDocs: z.array(z.string()),
+        readme: z.object({
+            path: z.string(),
+            content: z.string(),
+        }),
+        additionalDocs: z.array(
+            z.object({
+                path: z.string(),
+                content: z.string(),
+            }),
+        ),
     }),
     dependencies: z.object({
         packageManager: z.enum(['npm', 'yarn', 'pnpm', 'bun']),

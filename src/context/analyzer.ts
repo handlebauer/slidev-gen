@@ -36,9 +36,15 @@ export class ProjectAnalyzer {
      * Analyzes project documentation files (markdown).
      * Output structure:
      * {
-     *   readme: string,       // Full content of README.md
-     *   additionalDocs: string[],  // Array of contents of all other .md files,
-     * }                            // excluding node_modules and README.md itself
+     *   readme: {
+     *     path: string,
+     *     content: string,
+     *   },
+     *   additionalDocs: {
+     *     path: string,
+     *     content: string,
+     *   }[],
+     * }
      */
     private async analyzeDocumentation(): Promise<
         ProjectContext['documentation']
@@ -46,12 +52,12 @@ export class ProjectAnalyzer {
         try {
             // Read README.md
             const readmePath = join(this.projectRoot, 'README.md')
-            const readme = await readFile(readmePath, 'utf-8')
+            const readmeContent = await readFile(readmePath, 'utf-8')
 
             // Find additional docs (md files)
-            const docFiles = await glob('**/README.md', {
+            const docFiles = await glob('**/*.md', {
                 cwd: this.projectRoot,
-                ignore: ['node_modules/**', './README.md'],
+                ignore: ['node_modules/**', 'README.md'],
                 nodir: true,
             })
 
@@ -61,12 +67,18 @@ export class ProjectAnalyzer {
                         join(this.projectRoot, file),
                         'utf-8',
                     )
-                    return content
+                    return {
+                        path: file,
+                        content,
+                    }
                 }),
             )
 
             return {
-                readme,
+                readme: {
+                    path: 'README.md',
+                    content: readmeContent,
+                },
                 additionalDocs,
             }
         } catch (error) {

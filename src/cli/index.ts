@@ -239,8 +239,18 @@ class CLI {
     private getMockContext() {
         return {
             documentation: {
-                readme: '# Mock Project\nThis is a mock project for development mode.',
-                additionalDocs: ['docs/mock.md'],
+                readme: {
+                    path: 'README.md',
+                    content:
+                        '# Mock Project\nThis is a mock project for development mode.',
+                },
+                additionalDocs: [
+                    {
+                        path: 'docs/mock.md',
+                        content:
+                            '# Mock Documentation\nAdditional documentation for development mode.',
+                    },
+                ],
             },
             dependencies: {
                 packageManager: 'bun' as const,

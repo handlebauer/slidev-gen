@@ -141,9 +141,11 @@ custom_ignore/
                 const analyzer = new ProjectAnalyzer(TEST_PROJECT_ROOT)
                 const result = await analyzer['analyzeDocumentation']()
 
-                expect(result.readme).toContain('# Test Project')
+                expect(result.readme.path).toBe('README.md')
+                expect(result.readme.content).toContain('# Test Project')
                 expect(result.additionalDocs).toHaveLength(1)
-                expect(result.additionalDocs[0]).toContain('# Guide')
+                expect(result.additionalDocs[0].path).toBe('docs/guide.md')
+                expect(result.additionalDocs[0].content).toContain('# Guide')
             })
 
             test('handles missing README.md gracefully', async () => {

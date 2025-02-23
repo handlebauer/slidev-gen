@@ -15,8 +15,16 @@ describe('SlidesGenerator', () => {
     // Mock project context for testing
     const mockContext: ProjectContext = {
         documentation: {
-            readme: '# Test Project\nA test project for slides',
-            additionalDocs: ['# Additional Doc\nMore documentation'],
+            readme: {
+                path: 'README.md',
+                content: '# Test Project\nA test project for slides',
+            },
+            additionalDocs: [
+                {
+                    path: 'docs/additional.md',
+                    content: '# Additional Doc\nMore documentation',
+                },
+            ],
         },
         dependencies: {
             packageManager: 'bun',
