@@ -1,7 +1,7 @@
 {
     "name": "slidev-gen",
     "type": "module",
-    "version": "0.2.8",
+    "version": "0.2.9",
     "bin": {
         "slidev-gen": "./dist/slidev-gen.js"
     },
