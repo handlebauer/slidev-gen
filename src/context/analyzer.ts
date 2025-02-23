@@ -4,7 +4,7 @@ import { access, readFile } from 'fs/promises'
 import { join } from 'path'
 import { promisify } from 'util'
 
-import { $, Glob } from 'bun'
+import { execa } from 'execa'
 import { glob } from 'glob'
 
 import { SlidevGenError } from '../errors/SlidevGenError'
@@ -155,7 +155,9 @@ export class ProjectAnalyzer {
     private async analyzeGit(): Promise<ProjectContext['git']> {
         try {
             try {
-                await $`cd ${this.projectRoot} && GIT_DIR=.git git rev-parse --git-dir`
+                await execa('git', ['rev-parse', '--git-dir'], {
+                    cwd: this.projectRoot,
+                })
             } catch {
                 throw new Error('No git repository found in project root')
             }
@@ -230,22 +232,14 @@ export class ProjectAnalyzer {
     private async analyzeCodebase(): Promise<ProjectContext['codebase']> {
         try {
             // Get all source files
-            const sourceGlob = new Glob(
+            const allFiles = await glob(
                 '**/*.{js,jsx,ts,tsx,vue,svelte,py,rb,go,rs}',
+                {
+                    cwd: this.projectRoot,
+                    ignore: ['**/node_modules/**', '**/dist/**', '**/build/**'],
+                    nodir: true,
+                },
             )
-            const allFiles: string[] = []
-            for await (const file of sourceGlob.scan({
-                cwd: this.projectRoot,
-                onlyFiles: true,
-            })) {
-                if (
-                    !file.includes('node_modules/') &&
-                    !file.includes('dist/') &&
-                    !file.includes('build/')
-                ) {
-                    allFiles.push(file)
-                }
-            }
 
             // Determine main languages
             const extensions = allFiles.map(file => file.split('.').pop() || '')

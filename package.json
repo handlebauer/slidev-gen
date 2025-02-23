@@ -13,7 +13,7 @@
         "env": "bun --print process.env",
         "prepare": "husky",
         "lint": "eslint .",
-        "format": "prettier --write .",
+        "format": "prettier --write . '!**/*.md'",
         "clean": "rm -rf dist",
         "build": "bun run clean && bun run lint && bun run format && bun build.ts && echo 'Done'.",
         "bump": "bunx bumpp"
