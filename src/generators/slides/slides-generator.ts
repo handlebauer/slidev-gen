@@ -3,6 +3,7 @@ import { join } from 'node:path'
 
 import { createOpenAI } from '@ai-sdk/openai'
 import { generateObject } from 'ai'
+import dedent from 'dedent'
 import { execa } from 'execa'
 
 import {
@@ -84,11 +85,46 @@ export class SlidesGenerator {
     private async generateContent(
         context: ProjectContext,
     ): Promise<SlideContent> {
+        // In dry-run mode, return mock content
+        if (this.apiKey === 'dry-run') {
+            return {
+                headline: 'Mock headline for dry run',
+                title:
+                    context.documentation.readme.content
+                        .split('\n')[0]
+                        .replace('# ', '') || 'Project Overview',
+                sections: {
+                    overview: 'Mock overview for dry run',
+                    architecture: 'Mock architecture description',
+                    features: ['Mock Feature 1', 'Mock Feature 2'],
+                    technical: [
+                        'Mock Technical Detail 1',
+                        'Mock Technical Detail 2',
+                    ],
+                    roadmap: ['Mock Roadmap Item 1', 'Mock Roadmap Item 2'],
+                },
+                diagrams: {
+                    architecture: 'graph TD\nA[Project] --> B[Components]',
+                    flowcharts: ['graph LR\nX --> Y'],
+                },
+            }
+        }
+
+        console.log(
+            `Generate presentation data based on the following project context: ${JSON.stringify(context)}`,
+        )
+
         const openai = this.initializeOpenAI()
         const { object } = await generateObject({
             model: openai('gpt-4o-mini'),
-            system: 'You are a technical presentation expert. Generate clear, concise slides that effectively communicate technical concepts.',
-            prompt: `Generate presentation data based on the following project context: ${JSON.stringify(context)}`,
+            system: dedent`
+                You are a technical presentation expert. Generate clear, concise slides that effectively communicate technical concepts.
+            `,
+            prompt: dedent`
+                Generate presentation data based on the following project context: 
+                
+                ${JSON.stringify(context)}
+            `,
             schema: slideContentSchema,
         })
 

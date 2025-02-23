@@ -108,12 +108,19 @@ class CLI {
 
                     // Initialize components
                     this.startSpinner('Initializing project analyzer...')
-                    const analyzer = new ProjectAnalyzer(this.projectRoot)
+                    const analyzer = new ProjectAnalyzer(
+                        this.projectRoot,
+                        options.dryRun ? 'dry-run' : options.apiKey,
+                    )
                     const generator = new SlidesGenerator(
                         config.slidesPath,
                         options.dryRun ? 'dry-run' : options.apiKey,
                     )
-                    await this.simulateDelay(600)
+
+                    if (options.dryRun) {
+                        await this.simulateDelay(600)
+                    }
+
                     this.succeedSpinner('Components initialized successfully')
 
                     // Generate presentation
@@ -268,6 +275,16 @@ class CLI {
                 fileStructure:
                     'src/\n  cli/\n    index.ts\n  utils/\n    logger.ts',
                 significantFiles: ['src/cli/index.ts', 'src/utils/logger.ts'],
+                importantFiles: [
+                    {
+                        path: 'src/cli/index.ts',
+                        content: '// Mock content for CLI index',
+                    },
+                    {
+                        path: 'src/utils/logger.ts',
+                        content: '// Mock content for logger',
+                    },
+                ],
             },
         }
     }

@@ -12,11 +12,13 @@ export const templates: Record<string, SlideTemplate> = {
         layout: 'cover',
         content: (data: SlideTemplateData) => dedent`
             # ${data.title}
+
+            ${data.headline}
         `,
     },
 
     overview: {
-        layout: 'default',
+        layout: 'center',
         content: (data: SlideTemplateData) => dedent`
             # Overview
 
@@ -50,7 +52,7 @@ export const templates: Record<string, SlideTemplate> = {
     },
 
     features: {
-        layout: 'bullets',
+        layout: 'center',
         content: (data: SlideTemplateData) => {
             if (!data.features?.length) return ''
 
@@ -70,7 +72,7 @@ export const templates: Record<string, SlideTemplate> = {
     },
 
     technicalDetail: {
-        layout: 'default',
+        layout: 'fact',
         content: (data: SlideTemplateData) => {
             const tech = data.technical
             if (!tech) return ''
@@ -94,7 +96,7 @@ export const templates: Record<string, SlideTemplate> = {
     },
 
     roadmap: {
-        layout: 'timeline',
+        layout: 'center',
         content: (data: SlideTemplateData) => {
             if (!data.roadmap?.length) return ''
 

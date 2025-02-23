@@ -8,6 +8,8 @@ import { ProjectAnalyzer } from './analyzer'
 
 describe('ProjectAnalyzer', () => {
     const TEST_PROJECT_ROOT = join(import.meta.dir, '__test_project__')
+    const MOCK_API_KEY = 'test-api-key'
+    const ORIGINAL_OPENAI_API_KEY = process.env.OPENAI_API_KEY
 
     // Setup test project structure before each test
     beforeEach(async () => {
@@ -96,6 +98,9 @@ custom_ignore/
             console.error('Git setup failed:', error)
             throw error
         }
+
+        // Set mock API key for testing
+        process.env.OPENAI_API_KEY = MOCK_API_KEY
     })
 
     // Clean up test directory after all tests
@@ -103,6 +108,9 @@ custom_ignore/
         await $`rm -rf ${TEST_PROJECT_ROOT}`.catch(error => {
             console.error('Failed to clean up test directory:', error)
         })
+
+        // Restore original API key
+        process.env.OPENAI_API_KEY = ORIGINAL_OPENAI_API_KEY
     })
 
     describe('Integration Tests (Happy Path)', () => {
@@ -230,5 +238,48 @@ custom_ignore/
                 expect(result.fileStructure).toContain('src')
             })
         })
+    })
+
+    test('analyze() returns project context with all required fields', async () => {
+        const analyzer = new ProjectAnalyzer(TEST_PROJECT_ROOT)
+        const context = await analyzer.analyze()
+
+        expect(context).toBeDefined()
+        expect(context.documentation).toBeDefined()
+        expect(context.dependencies).toBeDefined()
+        expect(context.git).toBeDefined()
+        expect(context.codebase).toBeDefined()
+
+        // Check codebase fields
+        expect(context.codebase.mainLanguages).toBeArray()
+        expect(context.codebase.fileStructure).toBeString()
+        expect(context.codebase.significantFiles).toBeArray()
+        expect(context.codebase.importantFiles).toBeArray()
+    })
+
+    test('analyze() includes important files in codebase analysis', async () => {
+        const analyzer = new ProjectAnalyzer(TEST_PROJECT_ROOT, MOCK_API_KEY)
+        const context = await analyzer.analyze()
+
+        expect(context.codebase.importantFiles).toBeArray()
+        expect(context.codebase.importantFiles.length).toBeLessThanOrEqual(5)
+
+        // Check structure of important files
+        if (context.codebase.importantFiles.length > 0) {
+            const firstFile = context.codebase.importantFiles[0]
+            expect(firstFile).toHaveProperty('path')
+            expect(firstFile).toHaveProperty('content')
+            expect(typeof firstFile.path).toBe('string')
+            expect(typeof firstFile.content).toBe('string')
+        }
+    })
+
+    test('analyze() handles missing API key gracefully', async () => {
+        process.env.OPENAI_API_KEY = undefined
+        const analyzer = new ProjectAnalyzer(TEST_PROJECT_ROOT)
+        const context = await analyzer.analyze()
+
+        expect(context.codebase.importantFiles).toBeArray()
+        expect(context.codebase.importantFiles).toHaveLength(0)
     })
 })

@@ -4,8 +4,12 @@ import { access, readFile } from 'fs/promises'
 import { join } from 'path'
 import { promisify } from 'util'
 
+import { createOpenAI } from '@ai-sdk/openai'
+import { generateObject } from 'ai'
+import dedent from 'dedent'
 import { execa } from 'execa'
 import { glob } from 'glob'
+import { z } from 'zod'
 
 import { SlidevGenError } from '../errors/SlidevGenError'
 
@@ -14,9 +18,129 @@ import type { ProjectContext } from './types'
 const execAsync = promisify(exec)
 
 export class ProjectAnalyzer {
-    constructor(private readonly projectRoot: string) {}
+    private openai: ReturnType<typeof createOpenAI> | undefined
+
+    constructor(
+        private readonly projectRoot: string,
+        private readonly apiKey?: string,
+    ) {}
+
+    private initializeOpenAI(): ReturnType<typeof createOpenAI> {
+        if (!this.openai) {
+            const key = this.apiKey ?? process.env.OPENAI_API_KEY
+            if (!key) {
+                throw new Error(
+                    'OpenAI API key must be provided either as constructor argument or in process.env.OPENAI_API_KEY',
+                )
+            }
+            this.openai = createOpenAI({
+                apiKey: key,
+                compatibility: 'strict',
+            })
+        }
+        return this.openai
+    }
+
+    private async getImportantFilePaths(
+        context: Omit<ProjectContext, 'codebase'> & {
+            codebase: Omit<ProjectContext['codebase'], 'importantFiles'>
+        },
+    ): Promise<string[]> {
+        // In dry-run mode, return a subset of significant files
+        if (this.apiKey === 'dry-run') {
+            return context.codebase.significantFiles
+                .filter(file => !file.startsWith('.')) // Skip hidden files
+                .slice(0, 3) // Take up to 3 files
+        }
+
+        try {
+            const openai = this.initializeOpenAI()
+            const { object } = await generateObject({
+                model: openai('o3-mini'),
+                system: dedent`
+                    You are a technical presentation expert analyzing a project's structure.
+                    Your task is to identify the most likely important source files based on:
+                    - File names and paths
+                    - Project structure
+                    - Git history
+                    - Dependencies and tech stack
+                    - Documentation references
+                `,
+                prompt: dedent`
+                    Based on the following project context, identify the top 5 most important source files that should be highlighted in the presentation.
+                    
+                    Available information:
+                    1. File Structure:
+                    ${context.codebase.fileStructure}
+
+                    2. Main Languages: ${context.codebase.mainLanguages.join(', ')}
+                    
+                    3. Configuration Files: 
+                    ${context.codebase.significantFiles.join('\n')}
+                    
+                    4. Recent Git Activity:
+                    - Recent commits: ${context.git.recentCommits.join('\n- ')}
+                    - Major changes: ${context.git.majorChanges.join('\n- ')}
+                    
+                    5. Tech Stack:
+                    ${Object.entries(context.dependencies.packages)
+                        .map(([pkg, version]) => `- ${pkg}@${version}`)
+                        .join('\n')}
+                    
+                    6. Documentation References:
+                    ${context.documentation.readme.content}
+                    ${context.documentation.additionalDocs
+                        .map(doc => doc.content)
+                        .join('\n')}
+
+                    Based on this information, return an array of the most important source file paths (relative to project root).
+                    Focus on:
+                    1. Main entry points and core modules
+                    2. Files implementing key features mentioned in documentation
+                    3. Files with significant recent changes
+                    4. Critical configuration and type definition files
+                    5. Files that demonstrate the project's architecture
+                    `,
+                schema: z.object({
+                    paths: z
+                        .array(z.string())
+                        .describe(
+                            'Array of important file paths relative to project root',
+                        ),
+                }),
+            })
+
+            return object.paths
+        } catch (error) {
+            console.warn('Failed to get important file paths:', error)
+            return []
+        }
+    }
+
+    private async readImportantFiles(
+        paths: string[],
+    ): Promise<Array<{ path: string; content: string }>> {
+        return Promise.all(
+            paths.map(async path => {
+                try {
+                    const content = await readFile(
+                        join(this.projectRoot, path),
+                        'utf-8',
+                    )
+                    return { path, content }
+                } catch (error) {
+                    console.warn(
+                        `Failed to read important file ${path}:`,
+                        error,
+                    )
+                    return { path, content: '// Failed to read file content' }
+                }
+            }),
+        )
+    }
 
     async analyze(): Promise<ProjectContext> {
+        // Analyze project components in parallel
         const [documentation, dependencies, git, codebase] = await Promise.all([
             this.analyzeDocumentation(),
             this.analyzeDependencies(),
@@ -24,11 +148,18 @@ export class ProjectAnalyzer {
             this.analyzeCodebase(),
         ])
 
+        // Get important files if API key is available
+        const baseContext = { documentation, dependencies, git, codebase }
+        const importantFilePaths = await this.getImportantFilePaths(baseContext)
+        const importantFiles = await this.readImportantFiles(importantFilePaths)
+
+        // Return complete analysis
         return {
-            documentation,
-            dependencies,
-            git,
-            codebase,
+            ...baseContext,
+            codebase: {
+                ...codebase,
+                importantFiles,
+            },
         }
     }
 
@@ -328,6 +459,7 @@ export class ProjectAnalyzer {
                 mainLanguages,
                 fileStructure: treeOutput,
                 significantFiles,
+                importantFiles: [], // Will be populated later by analyze()
             }
         } catch (error) {
             if (error instanceof Error) {

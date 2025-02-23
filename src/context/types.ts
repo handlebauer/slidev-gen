@@ -26,6 +26,12 @@ export const ProjectContextSchema = z.object({
         mainLanguages: z.array(z.string()),
         fileStructure: z.string(),
         significantFiles: z.array(z.string()),
+        importantFiles: z.array(
+            z.object({
+                path: z.string(),
+                content: z.string(),
+            }),
+        ),
     }),
 })
 

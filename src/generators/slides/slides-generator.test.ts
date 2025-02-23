@@ -41,6 +41,7 @@ describe('SlidesGenerator', () => {
             mainLanguages: ['ts', 'js'],
             significantFiles: ['package.json', 'src/index.ts'],
             fileStructure: 'src/\n  index.ts\n  utils.ts',
+            importantFiles: [],
         },
     }
 
@@ -128,6 +129,7 @@ describe('SlidesGenerator', () => {
                 const generator = new SlidesGenerator(TEST_OUTPUT_DIR)
                 const mockContent = {
                     title: 'Test Title',
+                    headline: 'Test Headline',
                     sections: {
                         overview: 'Test Overview',
                         architecture: 'Test Architecture',
@@ -155,6 +157,7 @@ describe('SlidesGenerator', () => {
                 const generator = new SlidesGenerator(TEST_OUTPUT_DIR)
                 const mockContent = {
                     title: 'Test Title',
+                    headline: 'Test Headline',
                     sections: {
                         overview: 'Test Overview',
                         architecture: 'Test Architecture',
