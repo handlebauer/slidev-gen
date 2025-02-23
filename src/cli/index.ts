@@ -256,12 +256,6 @@ class CLI {
     private handleError(error: unknown): never {
         if (error instanceof SlidevGenError) {
             this.error(`❌ ${error.message}`)
-            if (error.type === 'APIKeyMissing') {
-                this.info('\n💡 Tip: You can set your API key using:')
-                this.info('  export OPENAI_API_KEY=your-key-here')
-                this.info('  # or')
-                this.info('  slidev-gen generate --api-key your-key-here')
-            }
         } else {
             this.error('❌ An unexpected error occurred:')
             this.error(error instanceof Error ? error.message : String(error))
