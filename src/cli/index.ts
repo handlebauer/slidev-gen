@@ -5,6 +5,8 @@ import { SlidevGenError } from '../errors/SlidevGenError'
 import { SlidesGenerator } from '../generators/slides/slides-generator'
 import { ConfigManager } from '../utils/config-manager'
 
+import packageJson from '../../package.json' assert { type: 'json' }
+
 import type { ProjectConfig } from '../config/types'
 
 interface CLIOptions extends Partial<ProjectConfig> {
@@ -29,7 +31,7 @@ class CLI {
             .description(
                 'Generate project-specific presentations using Slidev and LLM technology',
             )
-            .version('0.1.1')
+            .version(packageJson.version)
 
         this.setupGenerateCommand()
         this.setupPreviewCommand()
