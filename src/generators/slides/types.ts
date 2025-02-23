@@ -11,22 +11,28 @@ export const slideContentSchema = z.object({
         overview: z
             .string()
             .describe(
-                'An conversational overview of the project in 3 sentences',
+                'An conversational overview of the project in 3 sentences. Each sentence should be on a new line.',
             ),
         architecture: z
             .string()
             .describe(
-                'A high-level overview of the project architecture, in 3 sentences',
+                'A high-level overview of the project architecture, in 3 sentences. Each sentence should be on a new line.',
             ),
         features: z
             .array(z.string())
             .describe(
-                'The most compelling features of the project, in 1 sentence each',
+                'The most compelling features of the project, in 1 sentence each. Each feature should be prefixed with a bullet point.',
             ),
         technical: z
             .array(z.string())
-            .describe('Technical details of the project, in 1 sentence each'),
-        roadmap: z.array(z.string()).describe('Roadmap of the project'),
+            .describe(
+                'Technical details of the project, in 1 sentence each. Each detail should be prefixed with a bullet point.',
+            ),
+        roadmap: z
+            .array(z.string())
+            .describe(
+                'Roadmap of the project. Each item should be prefixed with a bullet point.',
+            ),
     }),
     diagrams: z.object({
         architecture: z

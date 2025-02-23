@@ -110,10 +110,6 @@ export class SlidesGenerator {
             }
         }
 
-        console.log(
-            `Generate presentation data based on the following project context: ${JSON.stringify(context)}`,
-        )
-
         const openai = this.initializeOpenAI()
         const { object } = await generateObject({
             model: openai('gpt-4o-mini'),
@@ -121,12 +117,16 @@ export class SlidesGenerator {
                 You are a technical presentation expert. Generate clear, concise slides that effectively communicate technical concepts.
             `,
             prompt: dedent`
-                Generate presentation data based on the following project context: 
+                Generate presentation data based on the following project context.
+                
+                Remember to format all text with proper newlines and spacing for readability.
                 
                 ${JSON.stringify(context)}
             `,
             schema: slideContentSchema,
         })
+
+        console.log(object)
 
         return object as SlideContent
     }
@@ -137,6 +137,7 @@ export class SlidesGenerator {
         // Convert SlideContent to SlideTemplateData format
         const templateData: SlideTemplateData = {
             title: content.title,
+            headline: content.headline,
             overview: content.sections.overview,
             architecture: {
                 description: content.sections.architecture,
