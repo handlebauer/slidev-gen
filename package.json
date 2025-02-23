@@ -1,7 +1,7 @@
 {
     "name": "slidev-gen",
     "type": "module",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "module": "src/index.ts",
     "bin": {
         "slidev-gen": "./dist/bin/slidev-gen.js"
