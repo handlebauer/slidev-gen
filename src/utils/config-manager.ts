@@ -1,4 +1,4 @@
-import { mkdir } from 'fs/promises'
+import { mkdir, readFile, writeFile } from 'fs/promises'
 import { dirname } from 'path'
 
 import { ZodError } from 'zod'
@@ -22,27 +22,17 @@ export class ConfigManager {
 
     async loadConfig(): Promise<ProjectConfig> {
         try {
-            // Try to read and parse config file using Bun's built-in JSON parser
-            const file = Bun.file(this.configPath)
-            const exists = await file.exists()
-
-            if (!exists) {
-                logger.info('No configuration file found, using defaults')
-                return ProjectConfigSchema.parse({})
-            }
-
-            const parsedConfig = await file.json()
-
             try {
+                // Try to read and parse config file using Node.js fs/promises
+                const fileContent = await readFile(this.configPath, 'utf-8')
+                const parsedConfig = JSON.parse(fileContent)
+
                 // Validate and parse with zod schema
                 return ProjectConfigSchema.parse(parsedConfig)
             } catch (error) {
-                if (error instanceof ZodError) {
-                    throw new SlidevGenError(
-                        'InvalidConfiguration',
-                        `Invalid configuration format: ${error.errors.map(e => e.message).join(', ')}`,
-                        error,
-                    )
+                if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+                    logger.info('No configuration file found, using defaults')
+                    return ProjectConfigSchema.parse({})
                 }
                 throw error
             }
@@ -79,7 +69,7 @@ export class ConfigManager {
                 // Pretty print JSON for better readability
                 const configString = JSON.stringify(validatedConfig, null, 2)
 
-                await Bun.write(this.configPath, configString)
+                await writeFile(this.configPath, configString, 'utf-8')
                 logger.info('Configuration saved successfully')
             } catch (error) {
                 if (error instanceof ZodError) {
