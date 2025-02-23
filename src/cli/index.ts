@@ -14,7 +14,7 @@ import type { ProjectConfig } from '../config/types'
 
 interface CLIOptions extends Partial<ProjectConfig> {
     apiKey?: string
-    dev?: boolean
+    dryRun?: boolean
 }
 
 class CLI {
@@ -86,23 +86,21 @@ class CLI {
             .option('-t, --theme <theme>', 'Slidev theme to use', 'default')
             .option('-k, --api-key <key>', 'OpenAI API key')
             .option(
-                '-d, --dev',
-                'Run in development mode (no LLM calls)',
+                '--dry-run',
+                'Analyze project without generating presentation',
                 false,
             )
             .action(async (options: CLIOptions) => {
                 try {
-                    if (options.dev) {
-                        this.info(
-                            '🛠️  Running in development mode (no LLM calls)',
-                        )
+                    if (options.dryRun) {
+                        this.info('🔍 Running in dry-run mode (analysis only)')
                     }
                     this.info('🚀 Starting presentation generation...')
                     this.info('')
 
                     this.startSpinner('Loading configuration...')
                     const config = await this.loadConfig(options)
-                    if (!options.dev) {
+                    if (!options.dryRun) {
                         await this.getAPIKey(options.apiKey)
                     }
                     await this.simulateDelay(800)
@@ -113,20 +111,17 @@ class CLI {
                     const analyzer = new ProjectAnalyzer(this.projectRoot)
                     const generator = new SlidesGenerator(
                         config.slidesPath,
-                        options.dev ? 'dev-mode' : options.apiKey,
+                        options.dryRun ? 'dry-run' : options.apiKey,
                     )
                     await this.simulateDelay(600)
                     this.succeedSpinner('Components initialized successfully')
 
                     // Generate presentation
                     this.startSpinner('Analyzing project structure...')
-                    const context = options.dev
-                        ? (await this.simulateDelay(2000),
-                          this.getMockContext())
-                        : await analyzer.analyze()
+                    const context = await analyzer.analyze()
 
-                    // Write debug log in dev mode
-                    if (options.dev) {
+                    // Write analysis log in dry-run mode
+                    if (options.dryRun) {
                         await this.writeDebugLog(config.slidesPath, {
                             timestamp: new Date().toISOString(),
                             projectRoot: this.projectRoot,
@@ -138,21 +133,19 @@ class CLI {
                     this.succeedSpinner('Project analysis complete')
 
                     this.startSpinner('Generating presentation content...')
-                    if (!options.dev) {
+                    if (!options.dryRun) {
                         await generator.generate(context)
                     } else {
-                        // Simulate longer LLM generation time in dev mode
+                        // Simulate generation time in dry-run mode
                         await this.simulateDelay(3000)
                     }
                     this.succeedSpinner('Presentation generated successfully')
 
                     this.info('\n✨ All done! Your presentation is ready!')
-                    if (options.dev) {
+                    if (options.dryRun) {
+                        this.info('🔍 Note: This was a dry-run (analysis only)')
                         this.info(
-                            '🛠️  Note: This was a development mode run (no actual content generated)',
-                        )
-                        this.info(
-                            `📝 Debug log written to: ${join(config.slidesPath, '.debug.log')}`,
+                            `📝 Analysis log written to: ${join(config.slidesPath, '.debug.log')}`,
                         )
                     }
                     this.info(`📁 Location: ${config.slidesPath}`)
