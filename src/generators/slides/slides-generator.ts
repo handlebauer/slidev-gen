@@ -75,7 +75,7 @@ export class SlidesGenerator {
         context: ProjectContext,
     ): Promise<SlideContent> {
         const { object } = await generateObject({
-            model: this.openai('gpt-4'),
+            model: this.openai('gpt-4o-mini'),
             system: 'You are a technical presentation expert. Generate clear, concise slides that effectively communicate technical concepts.',
             prompt: `Generate presentation data based on the following project context: ${JSON.stringify(context)}`,
             schema: slideContentSchema,
