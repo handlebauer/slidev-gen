@@ -5,7 +5,6 @@ import { ZodError } from 'zod'
 
 import { ProjectConfigSchema } from '../config/types'
 import { SlidevGenError } from '../errors/SlidevGenError'
-import { logger } from './logger'
 
 import type { ProjectConfig } from '../config/types'
 
@@ -31,7 +30,7 @@ export class ConfigManager {
                 return ProjectConfigSchema.parse(parsedConfig)
             } catch (error) {
                 if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-                    logger.info('No configuration file found, using defaults')
+                    // Silently use defaults if no config file exists
                     return ProjectConfigSchema.parse({})
                 }
                 throw error
@@ -70,7 +69,6 @@ export class ConfigManager {
                 const configString = JSON.stringify(validatedConfig, null, 2)
 
                 await writeFile(this.configPath, configString, 'utf-8')
-                logger.info('Configuration saved successfully')
             } catch (error) {
                 if (error instanceof ZodError) {
                     throw new SlidevGenError(

@@ -1,4 +1,5 @@
 import { Command } from 'commander'
+import ora, { type Ora } from 'ora'
 
 import { ProjectAnalyzer } from '../context/analyzer'
 import { SlidevGenError } from '../errors/SlidevGenError'
@@ -11,18 +12,54 @@ import type { ProjectConfig } from '../config/types'
 
 interface CLIOptions extends Partial<ProjectConfig> {
     apiKey?: string
+    dev?: boolean
 }
 
 class CLI {
     private readonly program: Command
     private readonly configManager: ConfigManager
     private readonly projectRoot: string
+    private spinner: Ora | null = null
 
     constructor() {
         this.program = new Command()
         this.projectRoot = process.cwd()
         this.configManager = new ConfigManager(this.projectRoot)
         this.setupProgram()
+    }
+
+    private log(message: string): void {
+        console.log(message)
+    }
+
+    private info(message: string): void {
+        this.log(message)
+    }
+
+    private error(message: string): void {
+        console.error(message)
+    }
+
+    private startSpinner(text: string): void {
+        this.spinner = ora({
+            text,
+            color: 'blue',
+            spinner: 'dots',
+        }).start()
+    }
+
+    private succeedSpinner(text: string): void {
+        if (this.spinner) {
+            this.spinner.succeed(text)
+            this.spinner = null
+        }
+    }
+
+    private failSpinner(text: string): void {
+        if (this.spinner) {
+            this.spinner.fail(text)
+            this.spinner = null
+        }
     }
 
     private setupProgram(): void {
@@ -46,24 +83,68 @@ class CLI {
             .option('-m, --model <model>', 'OpenAI model to use', 'gpt-4')
             .option('-t, --theme <theme>', 'Slidev theme to use', 'default')
             .option('-k, --api-key <key>', 'OpenAI API key')
+            .option(
+                '-d, --dev',
+                'Run in development mode (no LLM calls)',
+                false,
+            )
             .action(async (options: CLIOptions) => {
                 try {
+                    if (options.dev) {
+                        this.info(
+                            '🛠️  Running in development mode (no LLM calls)',
+                        )
+                    }
+                    this.info('🚀 Starting presentation generation...')
+                    this.info('')
+
+                    this.startSpinner('Loading configuration...')
                     const config = await this.loadConfig(options)
-                    const apiKey = await this.getAPIKey(options.apiKey)
+                    if (!options.dev) {
+                        await this.getAPIKey(options.apiKey)
+                    }
+                    await this.simulateDelay(800)
+                    this.succeedSpinner('Configuration loaded successfully')
 
                     // Initialize components
+                    this.startSpinner('Initializing project analyzer...')
                     const analyzer = new ProjectAnalyzer(this.projectRoot)
                     const generator = new SlidesGenerator(
                         config.slidesPath,
-                        apiKey,
+                        options.dev ? 'dev-mode' : options.apiKey,
                     )
+                    await this.simulateDelay(600)
+                    this.succeedSpinner('Components initialized successfully')
 
                     // Generate presentation
-                    const context = await analyzer.analyze()
-                    await generator.generate(context)
+                    this.startSpinner('Analyzing project structure...')
+                    const context = options.dev
+                        ? (await this.simulateDelay(2000),
+                          this.getMockContext())
+                        : await analyzer.analyze()
+                    this.succeedSpinner('Project analysis complete')
 
-                    console.log('✨ Presentation generated successfully!')
+                    this.startSpinner('Generating presentation content...')
+                    if (!options.dev) {
+                        await generator.generate(context)
+                    } else {
+                        // Simulate longer LLM generation time in dev mode
+                        await this.simulateDelay(3000)
+                    }
+                    this.succeedSpinner('Presentation generated successfully')
+
+                    this.info('\n✨ All done! Your presentation is ready!')
+                    if (options.dev) {
+                        this.info(
+                            '🛠️  Note: This was a development mode run (no actual content generated)',
+                        )
+                    }
+                    this.info(`📁 Location: ${config.slidesPath}`)
+                    this.info(
+                        '💡 Tip: Run `slidev-gen preview` to view your presentation',
+                    )
                 } catch (error) {
+                    this.failSpinner('Generation failed')
                     this.handleError(error)
                 }
             })
@@ -142,17 +223,48 @@ class CLI {
         )
     }
 
+    private async simulateDelay(ms: number = 1000): Promise<void> {
+        await new Promise(resolve => setTimeout(resolve, ms))
+    }
+
+    private getMockContext() {
+        return {
+            documentation: {
+                readme: '# Mock Project\nThis is a mock project for development mode.',
+                additionalDocs: ['docs/mock.md'],
+            },
+            dependencies: {
+                packageManager: 'bun' as const,
+                packages: {
+                    'mock-package': '^1.0.0',
+                },
+            },
+            git: {
+                recentCommits: ['feat: mock commit'],
+                majorChanges: ['Initial mock setup'],
+                contributors: ['Developer'],
+            },
+            codebase: {
+                mainLanguages: ['TypeScript'],
+                fileStructure:
+                    'src/\n  cli/\n    index.ts\n  utils/\n    logger.ts',
+                significantFiles: ['src/cli/index.ts', 'src/utils/logger.ts'],
+            },
+        }
+    }
+
     private handleError(error: unknown): never {
         if (error instanceof SlidevGenError) {
-            console.error(`Error: ${error.message}`)
+            this.error(`❌ ${error.message}`)
             if (error.type === 'APIKeyMissing') {
-                console.error('\nTip: You can set your API key using:')
-                console.error('  export OPENAI_API_KEY=your-key-here')
-                console.error('  # or')
-                console.error('  slidev-gen generate --api-key your-key-here')
+                this.info('\n💡 Tip: You can set your API key using:')
+                this.info('  export OPENAI_API_KEY=your-key-here')
+                this.info('  # or')
+                this.info('  slidev-gen generate --api-key your-key-here')
             }
         } else {
-            console.error('An unexpected error occurred:', error)
+            this.error('❌ An unexpected error occurred:')
+            this.error(error instanceof Error ? error.message : String(error))
         }
         process.exit(1)
     }
