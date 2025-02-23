@@ -1,5 +1,7 @@
 import { Command } from 'commander'
 import ora, { type Ora } from 'ora'
+import { mkdir, writeFile } from 'fs/promises'
+import { join } from 'path'
 
 import { ProjectAnalyzer } from '../context/analyzer'
 import { SlidevGenError } from '../errors/SlidevGenError'
@@ -122,6 +124,17 @@ class CLI {
                         ? (await this.simulateDelay(2000),
                           this.getMockContext())
                         : await analyzer.analyze()
+
+                    // Write debug log in dev mode
+                    if (options.dev) {
+                        await this.writeDebugLog(config.slidesPath, {
+                            timestamp: new Date().toISOString(),
+                            projectRoot: this.projectRoot,
+                            config,
+                            context,
+                        })
+                    }
+
                     this.succeedSpinner('Project analysis complete')
 
                     this.startSpinner('Generating presentation content...')
@@ -137,6 +150,9 @@ class CLI {
                     if (options.dev) {
                         this.info(
                             '🛠️  Note: This was a development mode run (no actual content generated)',
+                        )
+                        this.info(
+                            `📝 Debug log written to: ${join(config.slidesPath, '.debug.log')}`,
                         )
                     }
                     this.info(`📁 Location: ${config.slidesPath}`)
@@ -250,6 +266,23 @@ class CLI {
                     'src/\n  cli/\n    index.ts\n  utils/\n    logger.ts',
                 significantFiles: ['src/cli/index.ts', 'src/utils/logger.ts'],
             },
+        }
+    }
+
+    private async writeDebugLog(
+        slidesPath: string,
+        data: unknown,
+    ): Promise<void> {
+        try {
+            await mkdir(slidesPath, { recursive: true })
+            await writeFile(
+                join(slidesPath, '.debug.log'),
+                JSON.stringify(data, null, 2),
+                'utf-8',
+            )
+        } catch (error) {
+            this.error('Failed to write debug log:')
+            this.error(error instanceof Error ? error.message : String(error))
         }
     }
 
