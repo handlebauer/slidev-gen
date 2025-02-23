@@ -4,7 +4,7 @@
     "version": "0.2.3",
     "main": "./dist/slidev-gen.js",
     "bin": {
-        "slidev-gen": "./dist/bin/slidev-gen.js"
+        "slidev-gen": "./dist/slidev-gen.js"
     },
     "files": [
         "bin",
