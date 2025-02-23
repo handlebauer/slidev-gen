@@ -4,14 +4,10 @@ Automatically generate project-specific presentations using Slidev and LLM techn
 
 ## Features
 
-- 🤖 AI-powered presentation generation
+- 🤖 AI-powered, project-specific presentation generation
 - 📊 Built-in support for Mermaid diagrams
 - 🎨 Multiple slide layouts (cover, center, two-cols, etc.)
-- 🔧 Customizable templates
-- 🎯 Project-specific content generation
-- 📱 Responsive design
-- 🎨 Theme support
-- ✨ Syntax highlighting with Shiki
+- 🔧 Customizable templates with theme support
 
 ## Quick Start
 
@@ -30,18 +26,7 @@ bunx slidev-gen deploy
 
 ## Configuration
 
-Create a `.slidev-gen.json` file in your project root:
-
-```json
-{
-    "slidesPath": "./.slides",
-    "model": "gpt-4",
-    "theme": "default",
-    "deploymentType": "github"
-}
-```
-
-Or use CLI options:
+**Optional** CLI options:
 
 ```bash
 bunx slidev-gen generate --slides-path ./custom-slides --model gpt-4-turbo
@@ -70,7 +55,7 @@ export OPENAI_API_KEY=your-key-here
 Or provide it via CLI:
 
 ```bash
-slidev-gen generate --api-key your-key-here
+bunx slidev-gen generate --api-key your-key-here
 ```
 
 ## Default Configuration
