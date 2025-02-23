@@ -16,6 +16,7 @@
         "format": "prettier --write . '!**/*.md'",
         "clean": "rm -rf dist",
         "build": "bun run clean && bun run lint && bun run format && bun build.ts && echo 'Done'.",
+        "publish:pkg": "bun run build && npm publish",
         "bump": "bunx bumpp"
     },
     "peerDependencies": {
