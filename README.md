@@ -1,31 +1,32 @@
--
-
 # SlidevGen
 
-Automatically generate project-specific presentations using Slidev and LLM technology.
+Automatically generate project-specific presentations using Slidev and LLM technology. SlidevGen analyzes your project and creates beautiful, professional presentations with customizable templates.
 
-## Installation
+## Features
 
-```bash
-# Install slidev-gen
-npm install -g slidev-gen @slidev/cli
+- 🤖 AI-powered presentation generation
+- 📊 Built-in support for Mermaid diagrams
+- 🎨 Multiple slide layouts (cover, center, two-cols, etc.)
+- 🔧 Customizable templates
+- 🎯 Project-specific content generation
+- 📱 Responsive design
+- 🎨 Theme support
+- ✨ Syntax highlighting with Shiki
 
-# Or using bun
-bun add -g slidev-gen @slidev/cli
-```
-
-## Usage
+## Quick Start
 
 ```bash
 # Generate slides for current project
-slidev-gen generate
+bunx slidev-gen generate
 
-# Preview the generated slides
-slidev-gen preview
+# Preview the generated slides (after generating)
+bunx slidev-gen preview
 
 # Build static site
-slidev-gen deploy
+bunx slidev-gen deploy
 ```
+
+(`npx` works just as well)
 
 ## Configuration
 
@@ -43,8 +44,20 @@ Create a `.slidev-gen.json` file in your project root:
 Or use CLI options:
 
 ```bash
-slidev-gen generate --slides-path ./custom-slides --model gpt-4-turbo
+bunx slidev-gen generate --slides-path ./custom-slides --model gpt-4-turbo
 ```
+
+## Available Slide Templates
+
+SlidevGen includes several built-in templates:
+
+- **Cover** - Main title slide with headline
+- **Overview** - Project overview and summary
+- **Architecture** - System architecture with optional Mermaid diagrams
+- **Features** - Key features list
+- **Technical Deep Dive** - Detailed technical sections
+- **Technical with Diagram** - Two-column layout with text and diagrams
+- **Roadmap** - Project roadmap and future plans
 
 ## API Key
 
@@ -59,3 +72,33 @@ Or provide it via CLI:
 ```bash
 slidev-gen generate --api-key your-key-here
 ```
+
+## Default Configuration
+
+The default Slidev configuration includes:
+
+- Theme: default
+- Syntax highlighter: Shiki
+- Line numbers enabled
+- Persistent drawings
+- Markdown Component (MDC) support
+
+## Development
+
+```bash
+# Install dependencies
+bun install
+
+# Run linting
+bun run lint
+
+# Format code
+bun run format
+
+# Build the project
+bun run build
+```
+
+## License
+
+MIT
