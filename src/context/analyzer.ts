@@ -1,10 +1,15 @@
-import { Glob } from 'bun'
-import { $ } from 'bun'
-import { join } from 'path'
 import { exec } from 'child_process'
+import { constants } from 'fs'
+import { access, readFile } from 'fs/promises'
+import { join } from 'path'
 import { promisify } from 'util'
-import type { ProjectContext } from './types'
+
+import { $, Glob } from 'bun'
+import { glob } from 'glob'
+
 import { SlidevGenError } from '../errors/SlidevGenError'
+
+import type { ProjectContext } from './types'
 
 const execAsync = promisify(exec)
 
@@ -41,25 +46,21 @@ export class ProjectAnalyzer {
         try {
             // Read README.md
             const readmePath = join(this.projectRoot, 'README.md')
-            const readme = await Bun.file(readmePath).text()
+            const readme = await readFile(readmePath, 'utf-8')
 
             // Find additional docs (md files)
-            const docGlob = new Glob('**/*.md')
-            const docFiles: string[] = []
-            for await (const file of docGlob.scan({
+            const docFiles = await glob('**/*.md', {
                 cwd: this.projectRoot,
-                onlyFiles: true,
-            })) {
-                if (!file.includes('node_modules/') && file !== 'README.md') {
-                    docFiles.push(file)
-                }
-            }
+                ignore: ['node_modules/**', 'README.md'],
+                nodir: true,
+            })
 
             const additionalDocs = await Promise.all(
-                docFiles.map(async file => {
-                    const content = await Bun.file(
+                docFiles.map(async (file: string) => {
+                    const content = await readFile(
                         join(this.projectRoot, file),
-                    ).text()
+                        'utf-8',
+                    )
                     return content
                 }),
             )
@@ -97,7 +98,7 @@ export class ProjectAnalyzer {
         try {
             // Read package.json
             const pkgPath = join(this.projectRoot, 'package.json')
-            const pkgContent = await Bun.file(pkgPath).text()
+            const pkgContent = await readFile(pkgPath, 'utf-8')
             const pkg = JSON.parse(pkgContent) as {
                 dependencies?: Record<string, string>
                 devDependencies?: Record<string, string>
@@ -283,7 +284,7 @@ export class ProjectAnalyzer {
             let ignorePattern: string
             try {
                 const gitignorePath = join(this.projectRoot, '.gitignore')
-                const gitignoreContent = await Bun.file(gitignorePath).text()
+                const gitignoreContent = await readFile(gitignorePath, 'utf-8')
                 const patterns = gitignoreContent
                     .split('\n')
                     .map(line => line.trim())
@@ -333,6 +334,11 @@ export class ProjectAnalyzer {
     }
 
     private async fileExists(path: string): Promise<boolean> {
-        return await Bun.file(join(this.projectRoot, path)).exists()
+        try {
+            await access(join(this.projectRoot, path), constants.F_OK)
+            return true
+        } catch {
+            return false
+        }
     }
 }

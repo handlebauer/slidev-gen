@@ -1,9 +1,11 @@
-import { expect, describe, test, beforeEach, afterEach } from 'bun:test'
+import { mkdir } from 'fs/promises'
+import { join } from 'path'
 
 import { $ } from 'bun'
-import { join } from 'path'
-import { mkdir } from 'fs/promises'
+import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
+
 import { ConfigManager } from './config-manager'
+
 import type { ProjectConfig } from '../config/types'
 
 describe('ConfigManager', () => {

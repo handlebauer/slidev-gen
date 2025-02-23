@@ -1,7 +1,9 @@
-import { expect, describe, test, beforeEach, afterAll } from 'bun:test'
-import { $ } from 'bun'
-import { join } from 'path'
 import { mkdir } from 'fs/promises'
+import { join } from 'path'
+
+import { $ } from 'bun'
+import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
+
 import { ProjectAnalyzer } from './analyzer'
 
 describe('ProjectAnalyzer', () => {

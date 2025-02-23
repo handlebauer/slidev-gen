@@ -1,8 +1,10 @@
 import { Command } from 'commander'
+
 import { ProjectAnalyzer } from '../context/analyzer'
+import { SlidevGenError } from '../errors/SlidevGenError'
 import { SlidesGenerator } from '../generators/slides/slides-generator'
 import { ConfigManager } from '../utils/config-manager'
-import { SlidevGenError } from '../errors/SlidevGenError'
+
 import type { ProjectConfig } from '../config/types'
 
 interface CLIOptions extends Partial<ProjectConfig> {

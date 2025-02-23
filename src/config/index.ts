@@ -1,8 +1,8 @@
 import { z } from 'zod'
+
 import { name, version } from '../../package.json'
 
 const envSchema = z.enum(['development', 'test', 'production'])
-const targetSchema = z.enum(['browser', 'bun', 'node'])
 
 const appConfigSchema = z.object({
     PACKAGE_NAME: z.string().default(name),
@@ -14,7 +14,6 @@ const appConfigSchema = z.object({
         )
         .default(version),
     NODE_ENV: envSchema.default('development'),
-    BUILD_TARGET: targetSchema.default('node'),
     OPENAI_API_KEY: z.string().optional(),
 })
 

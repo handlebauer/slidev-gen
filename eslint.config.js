@@ -1,7 +1,7 @@
 import eslint from '@eslint/js'
-import * as tseslint from 'typescript-eslint'
-import eslintPluginPrettier from 'eslint-plugin-prettier'
 import prettierConfig from 'eslint-config-prettier'
+import eslintPluginPrettier from 'eslint-plugin-prettier'
+import * as tseslint from 'typescript-eslint'
 
 export default [
     {

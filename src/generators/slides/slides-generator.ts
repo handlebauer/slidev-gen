@@ -1,19 +1,19 @@
-import { mkdir } from 'node:fs/promises'
+import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { $ } from 'bun'
 
-import { generateObject } from 'ai'
 import { createOpenAI } from '@ai-sdk/openai'
+import { generateObject } from 'ai'
+import { execa } from 'execa'
 
 import {
-    templates,
     createSlide,
     defaultConfig,
+    templates,
 } from './templates/slide-templates'
+import { slideContentSchema } from './types'
 
 import type { ProjectContext } from '../../context/types'
 import type { SlideContent, SlideOutput, SlideTemplateData } from './types'
-import { slideContentSchema } from './types'
 
 export class SlidesGenerator {
     private readonly openai
@@ -46,7 +46,12 @@ export class SlidesGenerator {
             console.error(error)
             console.log('Installing required Slidev dependencies...')
             // Install both @slidev/cli and theme as temporary dependencies
-            await $`bun add -d @slidev/cli @slidev/theme-default`
+            await execa('npm', [
+                'install',
+                '--save-dev',
+                '@slidev/cli',
+                '@slidev/theme-default',
+            ])
             console.log('Slidev dependencies installed successfully')
         }
     }
@@ -142,10 +147,10 @@ export class SlidesGenerator {
         await mkdir(this.outputDir, { recursive: true })
 
         // Write the slides markdown
-        await Bun.write(join(this.outputDir, 'slides.md'), output.markdown)
+        await writeFile(join(this.outputDir, 'slides.md'), output.markdown)
 
         // Write the Slidev config
-        await Bun.write(
+        await writeFile(
             join(this.outputDir, 'slidev.config.ts'),
             `export default ${JSON.stringify(output.config, null, 2)}`,
         )
@@ -164,7 +169,7 @@ export class SlidesGenerator {
      */
     async preview(): Promise<void> {
         await this.ensureSlidevInstalled()
-        await $`npx slidev ${join(this.outputDir, 'slides.md')}`
+        await execa('npx', ['slidev', join(this.outputDir, 'slides.md')])
     }
 
     /**
@@ -173,7 +178,13 @@ export class SlidesGenerator {
      */
     async build(outDir = 'dist'): Promise<void> {
         await this.ensureSlidevInstalled()
-        await $`npx slidev build ${join(this.outputDir, 'slides.md')} --out ${outDir}`
+        await execa('npx', [
+            'slidev',
+            'build',
+            join(this.outputDir, 'slides.md'),
+            '--out',
+            outDir,
+        ])
     }
 
     /**
@@ -182,6 +193,12 @@ export class SlidesGenerator {
      */
     async exportPDF(outputPath: string): Promise<void> {
         await this.ensureSlidevInstalled()
-        await $`npx slidev export ${join(this.outputDir, 'slides.md')} --output ${outputPath}`
+        await execa('npx', [
+            'slidev',
+            'export',
+            join(this.outputDir, 'slides.md'),
+            '--output',
+            outputPath,
+        ])
     }
 }

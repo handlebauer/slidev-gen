@@ -104,8 +104,8 @@ interface APIKeyProvider {
 ### R4: Slide Generation
 
 ```typescript
-import { generateText } from 'ai'
 import { openai } from '@ai-sdk/openai'
+import { generateText } from 'ai'
 
 interface SlideContent {
     title: string
@@ -163,8 +163,8 @@ interface DeploymentConfig {
 ### Context Building Prompt Template
 
 ```typescript
-import { generateText } from 'ai'
 import { openai } from '@ai-sdk/openai'
+import { generateText } from 'ai'
 
 const generateContextPrompt = async (context: {
     repoUrl: string
@@ -203,8 +203,8 @@ Generate a presentation that:
 ### Slide Generation Prompt Template
 
 ```typescript
-import { generateText } from 'ai'
 import { openai } from '@ai-sdk/openai'
+import { generateText } from 'ai'
 
 const generateSlides = async (projectContext: any) => {
     const { text } = await generateText({

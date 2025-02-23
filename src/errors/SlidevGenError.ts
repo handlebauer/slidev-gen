@@ -1,5 +1,6 @@
-import type { ErrorType } from '../config/types'
 import { ErrorTypes } from '../config/types'
+
+import type { ErrorType } from '../config/types'
 
 export class SlidevGenError extends Error {
     constructor(

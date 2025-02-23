@@ -1,10 +1,13 @@
-import type { ProjectConfig } from '../config/types'
+import { mkdir } from 'fs/promises'
+import { dirname } from 'path'
+
+import { ZodError } from 'zod'
+
 import { ProjectConfigSchema } from '../config/types'
 import { SlidevGenError } from '../errors/SlidevGenError'
 import { logger } from './logger'
-import { dirname } from 'path'
-import { mkdir } from 'fs/promises'
-import { ZodError } from 'zod'
+
+import type { ProjectConfig } from '../config/types'
 
 /**
  * Manages project-specific configuration including presentation and deployment settings.

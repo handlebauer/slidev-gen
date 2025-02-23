@@ -1,9 +1,11 @@
-import { expect, describe, test, beforeEach, afterEach } from 'bun:test'
+import { mkdir, stat } from 'fs/promises'
+import { join } from 'path'
 
 import { $ } from 'bun'
-import { join } from 'path'
-import { mkdir, stat } from 'fs/promises'
+import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
+
 import { SlidesGenerator } from './slides-generator'
+
 import type { ProjectContext } from '../../context/types'
 
 describe('SlidesGenerator', () => {

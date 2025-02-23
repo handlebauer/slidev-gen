@@ -1,5 +1,6 @@
-import type { SlideTemplateData } from '../types'
 import dedent from 'dedent'
+
+import type { SlideTemplateData } from '../types'
 
 interface SlideTemplate {
     layout: string
