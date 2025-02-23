@@ -57,7 +57,7 @@ export class ProjectAnalyzer {
             // Find additional docs (md files)
             const docFiles = await glob('**/*.md', {
                 cwd: this.projectRoot,
-                ignore: ['node_modules/**', 'README.md'],
+                ignore: ['**/node_modules/**', 'README.md'],
                 nodir: true,
             })
 
