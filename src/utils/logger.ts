@@ -1,16 +1,13 @@
 import pino from 'pino'
 
-import { config } from '../config'
-
-// Set log level based on environment
-const logLevel = config.NODE_ENV === 'development' ? 'debug' : 'info'
-
+// During development NODE_ENV will be available
+// In production build this will be undefined, effectively disabling logging
 export const logger = pino({
+    level: process.env.NODE_ENV === 'production' ? 'silent' : 'debug',
     transport: {
         target: 'pino-pretty',
         options: {
             colorize: true,
         },
     },
-    level: logLevel,
 })
