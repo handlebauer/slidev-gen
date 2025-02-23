@@ -120,7 +120,9 @@ export class ProjectAnalyzer {
             // Determine package manager
             const hasYarnLock = await this.fileExists('yarn.lock')
             const hasPnpmLock = await this.fileExists('pnpm-lock.yaml')
-            const hasBunLock = await this.fileExists('bun.lock')
+            const hasBunLock =
+                (await this.fileExists('bun.lockb')) ||
+                (await this.fileExists('bun.lock'))
 
             const packageManager = hasBunLock
                 ? 'bun'
